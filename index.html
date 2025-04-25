@@ -58,26 +58,6 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script type="text/babel">
-      const App = () => {
-        const [cards, setCards] = React.useState(generateShuffledCards());
-
-        return (
-          <div>
-            <p>Total tarjetas: {cards.length}</p>
-            <div className="grid">
-              {cards.map((card) => (
-                <div key={card.id} className="card">
-                  {card.isFlipped || card.isMatched ? card.value : "❓"}
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      };
-
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
-
       const initialValues = ["🐐", "🗣️", "😂", "👨🏽‍💻", "😳", "🫩", "😎", "🎮"];
 
       const shuffleArray = (array) => {
@@ -99,6 +79,76 @@
           isMatched: false,
         }));
       };
+
+
+
+      const App = () => {
+        const [cards, setCards] = React.useState(generateShuffledCards());
+
+        const [firstCard, setFirstCard]  = React.useState(null);
+        const [secondCard, setSecondCard] = React.useState(null);
+        const [disabled, setDisabled] = React.useState(false);
+        const [moves, setMoves] = React.useState(0);
+
+        const resetTurn = () => {
+            setFirstCard(null);
+            setSecondCard(null);
+            setDisabled(false);
+        };
+
+        const handleCardClick = (card) => {
+            if (disabled || card.isFlipped || card.isMatched) return;
+
+            const flippedCard = { ...card, isFlipped: true};
+            const updatedCards = cards.map(c => c.id === card.id ? flippedCard : c);
+            setCards(updatedCards);
+
+            if (!firstCard) {
+                setFirstCard(flippedCard);
+            } else if (!secondCard) {
+                setSecondCard(flippedCard);
+                setDisabled(true);
+                setMoves(prev => prev + 1);
+
+                if (firstCard.value === flippedCard.value) {
+                    setCards( prev =>
+                        prev.map(c => 
+                            c.value === flippedCard.value ? { ...c, isMatched: true} : c
+                        )
+                    );
+                    resetTurn();
+                } else {
+                    setTimeout(() => {
+                        setCards(prev =>
+                            prev.map(c =>
+                                c.id === firstCard.id || c.id === flippedCard.id
+                                ? { ...c,  isFlipped: false}
+                                : c
+                            )
+                        );
+                        resetTurn();
+                    },1000);
+                }
+            }
+        };
+
+        return (
+          <div>
+            <p>Total tarjetas: {cards.length}</p>
+            <p>Movimientos: {moves}</p>
+            <div className="grid">
+              {cards.map((card) => (
+                <div key={card.id} className="card" onClick={() => handleCardClick(card)}>
+                  {card.isFlipped || card.isMatched ? card.value : "❓"}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
     </script>
   </body>
 </html>
