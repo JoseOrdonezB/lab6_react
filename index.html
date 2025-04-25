@@ -5,46 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lab6 - Memoria</title>
     <style>
-      body {
-        font-family: sans-serif;
-        background-color: #f5f5f5;
-        margin: 0;
-        padding: 2rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
+        body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #F1FAEE;
+  margin: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #1D3557;
+  min-height: 100vh;
+}
 
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(4, 80px);
-        gap: 10px;
-        justify-content: center;
-        margin-top: 20px;
-      }
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #1D3557;
+}
 
-      .card {
-        width: 80px;
-        height: 80px;
-        background-color: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        cursor: pointer;
-        user-select: none;
-      }
+h2 {
+  color: #E63946;
+  font-size: 1.8rem;
+  margin-top: 1rem;
+  text-align: center;
+}
 
-      #root {
-        width: 100%;
-        max-width: 600px;
-      }
+p {
+  font-size: 1rem;
+  margin: 0.5rem 0;
+  text-align: center;
+  color: #457B9D;
+  margin-top: 40px;
+  
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.card {
+  width: 80px;
+  height: 80px;
+  perspective: 1000px;
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+
+.card:hover .card-front,
+.card:hover .card-back {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.card-front {
+  background-color: #A8DADC; /* lado tapado */
+  color: #1D3557;
+}
+
+.card-back {
+  background-color: #457B9D; /* lado revelado */
+  color: white;
+  transform: rotateY(180deg);
+}
+
+#root {
+  width: 100%;
+  max-width: 600px;
+}
     </style>
   </head>
   <body>
-    <h1>MEMORIA ÉPICA</h1>
+    <h1>SUPER MEMORIA ÉPICA</h1>
     <div id="root"></div>
 
     <script
@@ -80,69 +139,90 @@
         }));
       };
 
-
-
       const App = () => {
         const [cards, setCards] = React.useState(generateShuffledCards());
 
-        const [firstCard, setFirstCard]  = React.useState(null);
+        const [firstCard, setFirstCard] = React.useState(null);
         const [secondCard, setSecondCard] = React.useState(null);
         const [disabled, setDisabled] = React.useState(false);
         const [moves, setMoves] = React.useState(0);
+        const [gameWon, setGameWon] = React.useState(false);
+
+        React.useEffect(() => {
+          if (cards.every((card) => card.isMatched)) {
+            setGameWon(true);
+          }
+        }, [cards]);
 
         const resetTurn = () => {
-            setFirstCard(null);
-            setSecondCard(null);
-            setDisabled(false);
+          setFirstCard(null);
+          setSecondCard(null);
+          setDisabled(false);
         };
 
         const handleCardClick = (card) => {
-            if (disabled || card.isFlipped || card.isMatched) return;
+          if (disabled || card.isFlipped || card.isMatched) return;
 
-            const flippedCard = { ...card, isFlipped: true};
-            const updatedCards = cards.map(c => c.id === card.id ? flippedCard : c);
-            setCards(updatedCards);
+          const flippedCard = { ...card, isFlipped: true };
+          const updatedCards = cards.map((c) =>
+            c.id === card.id ? flippedCard : c
+          );
+          setCards(updatedCards);
 
-            if (!firstCard) {
-                setFirstCard(flippedCard);
-            } else if (!secondCard) {
-                setSecondCard(flippedCard);
-                setDisabled(true);
-                setMoves(prev => prev + 1);
+          // Actualizamos según los estados actuales
+          if (!firstCard && !secondCard) {
+            setFirstCard(flippedCard);
+          } else if (firstCard && !secondCard) {
+            setSecondCard(flippedCard);
+            setDisabled(true);
+            setMoves((prev) => prev + 1);
 
-                if (firstCard.value === flippedCard.value) {
-                    setCards( prev =>
-                        prev.map(c => 
-                            c.value === flippedCard.value ? { ...c, isMatched: true} : c
-                        )
-                    );
-                    resetTurn();
-                } else {
-                    setTimeout(() => {
-                        setCards(prev =>
-                            prev.map(c =>
-                                c.id === firstCard.id || c.id === flippedCard.id
-                                ? { ...c,  isFlipped: false}
-                                : c
-                            )
-                        );
-                        resetTurn();
-                    },1000);
-                }
+            if (firstCard?.value === flippedCard.value) {
+              setCards((prev) =>
+                prev.map((c) =>
+                  c.value === flippedCard.value ? { ...c, isMatched: true } : c
+                )
+              );
+              setTimeout(() => {
+                resetTurn();
+              }, 500);
+            } else {
+              setTimeout(() => {
+                setCards((prev) =>
+                  prev.map((c) =>
+                    c.id === firstCard.id || c.id === flippedCard.id
+                      ? { ...c, isFlipped: false }
+                      : c
+                  )
+                );
+                resetTurn();
+              }, 1000);
             }
+          }
         };
 
         return (
           <div>
-            <p>Total tarjetas: {cards.length}</p>
-            <p>Movimientos: {moves}</p>
+            
+            {gameWon && <h2>🏆 HAS GANADO EL JUEGO 🏆</h2>}
             <div className="grid">
               {cards.map((card) => (
-                <div key={card.id} className="card" onClick={() => handleCardClick(card)}>
-                  {card.isFlipped || card.isMatched ? card.value : "❓"}
+                <div
+                  key={card.id}
+                  className={`card ${
+                    card.isFlipped || card.isMatched ? "flipped" : ""
+                  }`}
+                  onClick={() => handleCardClick(card)}
+                >
+                  <div className="card-inner">
+                    <div className="card-front">❓</div>
+                    <div className="card-back">{card.value}</div>
+                  </div>
                 </div>
               ))}
             </div>
+
+            <p>Movimientos: {moves}</p>
           </div>
         );
       };
