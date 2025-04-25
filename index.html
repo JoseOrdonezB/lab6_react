@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lab6 - Memoria</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 80px);
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      .card {
+        width: 80px;
+        height: 80px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      #root {
+        width: 100%;
+        max-width: 600px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MEMORIA ÉPICA</h1>
+    <div id="root"></div>
+
+    <script
+      src="https://unpkg.com/react@18/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const App = () => {
+        const [cards, setCards] = React.useState(generateShuffledCards());
+
+        return (
+          <div>
+            <p>Total tarjetas: {cards.length}</p>
+            <div className="grid">
+              {cards.map((card) => (
+                <div key={card.id} className="card">
+                  {card.isFlipped || card.isMatched ? card.value : "❓"}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+
+      const initialValues = ["🐐", "🗣️", "😂", "👨🏽‍💻", "😳", "🫩", "😎", "🎮"];
+
+      const shuffleArray = (array) => {
+        const newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+      };
+
+      const generateShuffledCards = () => {
+        const duplicated = [...initialValues, ...initialValues];
+        const shuffled = shuffleArray(duplicated);
+        return shuffled.map((value, index) => ({
+          id: index,
+          value,
+          isFlipped: false,
+          isMatched: false,
+        }));
+      };
+    </script>
+  </body>
+</html>
